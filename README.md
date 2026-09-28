@@ -167,13 +167,33 @@ curl -sS http://127.0.0.1:43122/jobs
 
 **Config as Code is deprecated.** `railway.toml` still documents the API/worker start commands for the Template Composer. New services should use `.railway/railway.ts`. Hard cutoff for CaC: 2026-12-01.
 
+## Source repositories
+
+The same `main` lives on Origin and GitHub (both private). Railway’s Template Composer deploys from GitHub.
+
+- Origin: https://cursor.com/codebase/bhanuvadlakonda/fast-queue
+- GitHub: https://github.com/bhanuvadlakonda/fast-queue
+
+```bash
+git remote add github https://github.com/bhanuvadlakonda/fast-queue.git
+./scripts/push-both.sh
+```
+
+`push-both.sh` pushes the current branch to `origin` (Origin) and `github`. After `gh auth login`, you can also attach GitHub as a second push URL:
+
+```bash
+git remote set-url --add --push origin https://github.com/bhanuvadlakonda/fast-queue.git
+```
+
+Do not add that second push URL in the Cursor cloud agent — it has Origin credentials only, and a failed GitHub push would block Origin updates.
+
 ## Publish as a marketplace template
 
 Do not publish from this cloud session. When you are ready:
 
-1. Push this repo to GitHub.
+1. Use the GitHub repo `bhanuvadlakonda/fast-queue` as the service source (already created, private).
 2. In Railway: **New Template** (or **Generate Template from Project**).
-3. Add **Postgres** (plugin), **API** (this repo, `railway.toml` / start `python -m app.main`, healthcheck `/healthz`), **Worker** (same repo, `railway.worker.toml` / start `python -m app.worker`).
+3. Add **Postgres** (plugin), **API** (GitHub repo, `railway.toml` / start `python -m app.main`, healthcheck `/healthz`), **Worker** (same repo, `railway.worker.toml` / start `python -m app.worker`).
 4. Variables: private `DATABASE_URL` refs, `RAILPACK_PYTHON_VERSION=3.12`, `JOB_API_TOKEN=${{ secret() }}` (optional).
 5. Volume on Postgres only.
 6. Replace the Deploy button URL in this README with your `railway.com/deploy/<slug>` link.
