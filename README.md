@@ -2,7 +2,7 @@
 
 [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new)
 
-Postgres-native background jobs for Python 3.12. FastAPI enqueues, a Procrastinate worker drains the same Postgres, and there is no Redis. Healthcheck: `GET /healthz` (200 even when the queue is empty). After you publish this repo as a marketplace template, point the button at your deploy slug.
+Postgres-native background jobs for Python 3.12. FastAPI enqueues, a Procrastinate worker drains the same Postgres, and there is no Redis. Healthcheck: `GET /healthz` (200 even when the queue is empty).
 
 ## About Hosting FastAPI + Procrastinate
 
@@ -27,7 +27,7 @@ By deploying this stack on Railway you get a public API, a private worker, and p
 - SaaS backends that enqueue email, webhooks, or reports without standing up Redis
 - FastAPI apps that need a real worker process (not `BackgroundTasks` in the web replica)
 - A 3.12-pinned starter when Railpack 3.13 breaks an older lockfile
-- A Station-ready example of private-net Postgres from Python (asyncpg / psycopg / SQLAlchemy)
+- Python services that talk to private-network Postgres (asyncpg / psycopg / SQLAlchemy)
 
 ## Dependencies for FastAPI + Procrastinate Hosting
 
@@ -70,7 +70,7 @@ curl -sS -X POST https://$RAILWAY_PUBLIC_DOMAIN/jobs/demo \
   -d '{"seconds": 2, "message": "hello"}'
 ```
 
-If `JOB_API_TOKEN` is set, send `Authorization: Bearer $JOB_API_TOKEN`. Generate that token with `${{ secret() }}` in the Template Composer — do not ship a default password.
+If `JOB_API_TOKEN` is set, send `Authorization: Bearer $JOB_API_TOKEN`. You can generate one with `${{ secret() }}` in the service variables.
 
 ### Why Deploy FastAPI + Procrastinate on Railway?
 
@@ -104,8 +104,6 @@ Railway is a singular platform to deploy your infrastructure stack. Railway will
 6. Attach a volume only on Postgres (the managed plugin does this). Do not add volumes to API or Worker.
 7. Give the API a public HTTP domain. Open `/` or `GET /healthz`.
 8. `POST /jobs/demo`, then watch Worker logs for `demo job started` / `demo job finished`.
-
-Marketplace publishers: add those two GitHub services plus the Postgres plugin in the Template Composer, paste the variables above, and generate the template from the project. Do not publish default database passwords.
 
 ## Local run
 
@@ -151,7 +149,7 @@ curl -sS http://127.0.0.1:43122/jobs
 | API | `GET /readyz` | 200 only if Postgres answers `SELECT 1`. |
 | Worker | `GET /healthz` | 200 after the worker has opened Procrastinate and can ping Postgres. 503 while starting. Bind `0.0.0.0:$PORT` (not `::`). |
 
-## Station pitfalls (private net / asyncpg / Python 3.12)
+## Private network, asyncpg, and Python 3.12
 
 **Private DNS is IPv6-first.** Legacy Railway environments resolve `*.railway.internal` to IPv6 only. Newer environments (after 16 Oct 2025) are dual-stack. asyncpg and SQLAlchemy’s asyncpg dialect often try the IPv4 A record first, hang, and never try AAAA. This repo resolves the host with `AF_UNSPEC`, prefers IPv6 for `*.railway.internal`, and passes a **bare IP** as `host=` kwargs. Do not put a raw IPv6 literal back into a URI — asyncpg has mis-parsed `[v6]:port`.
 
@@ -165,38 +163,11 @@ curl -sS http://127.0.0.1:43122/jobs
 
 **Volumes are not backups.** Only Postgres needs a volume. Redeploying API/Worker must not depend on local disk.
 
-**Config as Code is deprecated.** `railway.toml` still documents the API/worker start commands for the Template Composer. New services should use `.railway/railway.ts`. Hard cutoff for CaC: 2026-12-01.
+**Config as Code is deprecated.** `railway.toml` still documents the API/worker start commands. New services should use `.railway/railway.ts`. Hard cutoff for CaC: 2026-12-01.
 
-## Source repositories
+## Source
 
-The same `main` lives on Origin and GitHub (both private). Railway’s Template Composer deploys from GitHub.
-
-- Origin: https://cursor.com/codebase/bhanuvadlakonda/fast-queue
-- GitHub: https://github.com/bhanuvadlakonda/fast-queue
-
-```bash
-git remote add github https://github.com/bhanuvadlakonda/fast-queue.git
-./scripts/push-both.sh
-```
-
-`push-both.sh` pushes the current branch to `origin` (Origin) and `github`. After `gh auth login`, you can also attach GitHub as a second push URL:
-
-```bash
-git remote set-url --add --push origin https://github.com/bhanuvadlakonda/fast-queue.git
-```
-
-Do not add that second push URL in the Cursor cloud agent — it has Origin credentials only, and a failed GitHub push would block Origin updates.
-
-## Publish as a marketplace template
-
-Do not publish from this cloud session. When you are ready:
-
-1. Use the GitHub repo `bhanuvadlakonda/fast-queue` as the service source (already created, private).
-2. In Railway: **New Template** (or **Generate Template from Project**).
-3. Add **Postgres** (plugin), **API** (GitHub repo, `railway.toml` / start `python -m app.main`, healthcheck `/healthz`), **Worker** (same repo, `railway.worker.toml` / start `python -m app.worker`).
-4. Variables: private `DATABASE_URL` refs, `RAILPACK_PYTHON_VERSION=3.12`, `JOB_API_TOKEN=${{ secret() }}` (optional).
-5. Volume on Postgres only.
-6. Replace the Deploy button URL in this README with your `railway.com/deploy/<slug>` link.
+https://github.com/bhanuvadlakonda/fast-queue
 
 ## Layout
 
