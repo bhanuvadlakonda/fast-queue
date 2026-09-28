@@ -1,0 +1,17 @@
+# API service. Point the marketplace Template Composer "Config File" at this
+# path, or set the same values in the composer Settings tab.
+# New Railway services prefer .railway/railway.ts (Infrastructure as Code).
+
+[build]
+builder = "RAILPACK"
+
+[deploy]
+startCommand = "python -m app.main"
+preDeployCommand = ["python -m app.migrate"]
+healthcheckPath = "/healthz"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+[variables]
+RAILPACK_PYTHON_VERSION = "3.12"

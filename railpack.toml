@@ -1,0 +1,4 @@
+# Pin Python 3.12. Railpack defaults to 3.13, which drops stdlib
+# modules (PEP 594) and breaks older transitive deps.
+[versions]
+python = "3.12"

@@ -1,0 +1,16 @@
+# Worker service. Same repo as the API; different start command.
+# In the Template Composer, set Config File to /railway.worker.toml
+# (or paste startCommand / healthcheckPath into Settings).
+
+[build]
+builder = "RAILPACK"
+
+[deploy]
+startCommand = "python -m app.worker"
+healthcheckPath = "/healthz"
+healthcheckTimeout = 120
+restartPolicyType = "ALWAYS"
+restartPolicyMaxRetries = 10
+
+[variables]
+RAILPACK_PYTHON_VERSION = "3.12"

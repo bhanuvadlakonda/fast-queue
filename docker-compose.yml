@@ -1,0 +1,19 @@
+# Local Postgres only. API and worker run on the host against this URL:
+#   DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55432/procrastinate
+#
+# Do not deploy this Compose file to Railway. The marketplace stack uses
+# Railway's managed Postgres plugin (private networking + its own volume).
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: procrastinate
+    ports:
+      - "55432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d procrastinate"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
