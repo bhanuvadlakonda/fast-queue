@@ -1,6 +1,6 @@
 # Deploy and Host FastAPI + Procrastinate on Railway
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/fastapi-procrastinate)
 
 Postgres-native background jobs for Python 3.12. FastAPI enqueues, a Procrastinate worker drains the same Postgres, and there is no Redis. Healthcheck: `GET /healthz` (200 even when the queue is empty).
 
